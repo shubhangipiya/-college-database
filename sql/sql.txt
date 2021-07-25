@@ -1,0 +1,95 @@
+
+SQL> CREATE TABLE address(
+  2    country_id VARCHAR(15),
+  3    province VARCHAR(15) not null,
+  4    city VARCHAR(15) not null,
+  5    street VARCHAR(15) not null,
+  6    fax_no NUMBER(15) not null,
+  7    house_no NUMBER(15),
+  8    PRIMARY KEY(country_id)
+  9  );
+
+
+SQL> CREATE TABLE Instructor(
+  2    Instructor_id VARCHAR(5) not null,
+  3    name VARCHAR(5) not null,
+  4    phone_num VARCHAR(5) not null,
+  5    PRIMARY KEY(Instructor_id)
+  6  );
+
+
+SQL> CREATE TABLE Course (
+  2    course_type varchar(15) not null,
+  3    fees number(10) not null,
+  4    total_students number(5) not null,
+  5    primary key(course_type),
+  6    instructor_id varchar(15) not null,
+  7    Constraints instructor_id_FK
+  8    Foreign key(instructor_id)
+  9    references instructor(instructor_id)
+ 10  );
+
+
+SQL> CREATE TABLE Specification_Module_Course(
+  2    specification_id varchar(10) references specification(specification_id),
+  3    Module_Id varchar(10) references module(module_id),
+  4    course_type varchar(10) references course(course_type),
+  5   student_Id varchar(10) references student(student_id),
+  6  Access_ID number(10) references infastructure(Access_ID),
+  7  country_Id varchar(10) references address(country_id)
+  8  );
+
+
+SQL> CREATE TABLE student_address(
+  2    student_id varchar(10) references student(student_id),
+  3    country_id varchar(12) references address(country_id)
+  4  );
+
+
+SQL> CREATE TABLE Student (
+  2    student_id varchar(5) not null,
+  3    std_name varchar(15) not null,
+  4    phone_no number(12) not null,
+  5    primary key(student_id),
+  6    specification_id varchar(10) references specification(specification_id),
+  7    course_type varchar(10) references course(course_type)
+  8  );
+
+
+SQL> CREATE TABLE instructor_address(
+  2    instructor_id varchar(10) references instructor(instructor_id),
+  3    country_id varchar(12) references address(country_id)
+  4  );
+
+SQL> CREATE TABLE infastructure(
+  2    Access_ID number(12) not null,
+  3    Email_address varchar(12),
+  4    library varchar(12),
+  5    Theatre varchar(12),
+  6    Cafe varchar(12),
+  7    Lab varchar(12) ,
+  8    primary key(access_id)
+  9  );
+
+SQL> CREATE TABLE module(
+  2    module_id varchar(10) not null,
+  3    module_title varchar(12) not null,
+  4    course_leader varchar(12) not null,
+  5    students_enrolled number(12) not null,
+  6    primary key(module_id),
+  7    specification_id varchar(12) references specification(specification_id),
+  8    instructor_id varchar(5) references instructor(instructor_id)
+  9  );
+
+SQL> CREATE TABLE Specification(
+  2        specification_id varchar(12) not null,
+  3        specification_name varchar(12) not null,
+  4        primary key(specification_id),
+  5        course_type varchar(5) references course(course_type)
+  6      );
+
+
+SQL> CREATE TABLE course_type(
+  2    salary number(12) not null,
+  3    course_type varchar(5) references course(course_type)
+  4  );

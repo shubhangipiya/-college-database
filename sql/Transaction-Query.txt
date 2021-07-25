@@ -1,0 +1,100 @@
+1. Show the students, course they enroll in and their fees. Reduce 10% of the fees if
+they are enrolled in a computing course.
+
+SELECT 
+    UNIQUE(s.First_Name||' '||s.Last_Name) AS "Student Name", c.Course_Name, sp.Specification_Name, sp.Fee,
+CASE sp.Specification_Name
+    WHEN 'Computing' THEN sp.Fee * 0.9
+    ELSE sp.Fee END "Final Fee"
+FROM Student s
+    JOIN Marks mk ON (mk.StudentID = s.StudentID)
+    JOIN Module m ON (m.ModuleID=mk.ModuleID)
+    JOIN Specification_Module_Assign sma ON (sma.ModuleID=m.ModuleID)
+    JOIN Specification sp ON (sp.SpecificationID = sma.SpecificationID)
+    JOIN Course c ON (c.CourseID = m.CourseID)
+;
+
+=================================================================================================
+2. Place the default Number 1234567890 if the list of phone numbers to the location of
+the address is empty and give the column name as ‘Contact details.
+
+SELECT 
+    sat.StudentAddressID, sat.Type, 
+    sa.Country, sa.Province, sa.City, sa.Street,
+    san.House_Number AS "House", san.Phone_Number AS "PhoneNo",
+DECODE(san.Phone_Number, '', '1234567890', san.Phone_Number) "Contact Details",
+    san.Fax_Number AS "Fax"
+FROM Student_Address_Type sat
+    JOIN Student_Address sa ON (sa.StudentAddressID = sat.StudentAddressID)
+    JOIN Student_Address_Number san ON (san.House_Number = sat.House_Number)
+ORDER BY sat.StudentAddressID;
+
+===================================================================================
+
+3. Show the name of all the students with the number of weeks since they have enrolled 
+in the course.
+
+SELECT 
+    UNIQUE(s.First_Name||' '||s.Last_Name) AS "Student Name", c.Course_Name, 
+    ROUND((SYSDATE - s.Enroll_Date)/7) AS "Weeks"
+FROM Student s
+    JOIN  Marks mk ON (mk.StudentID=s.StudentID)
+    JOIN Module m ON (m.ModuleID=mk.ModuleID)
+    JOIN Course c ON (c.CourseID = m.CourseID)
+;
+
+====================================================================================
+4. Show the name of the instructors who got equal salary and work in the same specification.
+
+SELECT * FROM (
+        SELECT 
+            i.First_Name||' '||i.Last_Name AS Instructor, sa.Salary, sp.Specification_Name 
+        FROM Instructor i
+            JOIN Salary_Assign sa ON (sa.Job_Type = i.Job_Type)
+            JOIN Instructor_Module_Assign ima ON (ima.InstructorID = i.InstructorID)
+	    JOIN Module m ON (m.ModuleID=ima.ModuleID)
+	    JOIN Specification_Module_Assign sma ON (sma.ModuleID=m.ModuleID)
+            JOIN Specification sp ON (sp.SpecificationID = sma.SpecificationID)
+        GROUP BY sp.Specification_Name, sa.Salary, i.First_Name||' '||i.Last_Name
+    ) prv
+WHERE 
+    ( 
+        SELECT COUNT(*) FROM (
+            SELECT 
+                i.First_Name||' '||i.Last_Name AS Instructor, sa.Salary, sp.Specification_Name 
+            FROM instructor i
+                JOIN Salary_Assign sa ON (sa.Job_Type = i.Job_Type)
+                JOIN Instructor_Module_Assign ima ON (ima.InstructorID = i.InstructorID)
+	        JOIN Module m ON (m.ModuleID=ima.ModuleID)
+	        JOIN Specification_Module_Assign sma ON (sma.ModuleID=m.ModuleID)
+                JOIN Specification sp ON (sp.SpecificationID = sma.SpecificationID)
+            GROUP BY sp.Specification_Name, sa.Salary, i.First_Name||' '||i.Last_Name
+        ) ltr 
+        WHERE ltr.salary = prv.salary AND ltr.Specification_Name = prv.Specification_Name
+    )  > 1
+ORDER BY prv.salary, prv.Specification_Name;
+
+===================================================================================
+5. List all the courses with the total number of students enrolled course name and the highest marks obtained.
+
+SELECT
+    c.Course_Name, MAX(first."Top") AS "Top", COUNT(*) AS "Total Student"
+FROM (
+      SELECT
+	s.StudentID, c.courseID, MAX(mk.Marks_Obtained) AS "Top"
+      FROM Student s
+	JOIN Marks mk ON (mk.StudentID = s.StudentID)
+	JOIN Module m ON (m.ModuleID = mk.ModuleID)
+	JOIN Course c ON (c.CourseID=m.CourseID)
+      GROUP BY s.StudentID, c.CourseID ) first
+JOIN Course c ON (c.CourseID=first.CourseID)
+GROUP BY c.Course_Name;
+
+====================================================================================
+6. List all the instructors who are also a course leader.
+
+SELECT 
+    i.First_Name||' '||i.Last_Name AS "Instructor Name", sa.Job_Type
+FROM Instructor i
+    JOIN Salary_Assign sa ON (sa.Job_Type = i.Job_Type)
+WHERE sa.Job_Type = 'Course Leader';
